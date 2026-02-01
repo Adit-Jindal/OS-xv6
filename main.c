@@ -1,4 +1,5 @@
 #include "types.h"
+#include "defs.h"
 #include "x86.h"
 
 extern char end[]; // first address after kernel loaded from ELF file
@@ -6,6 +7,7 @@ extern char end[]; // first address after kernel loaded from ELF file
 int
 halt(void)
 {
+  cprintf("Printing works!!\n");
   outw(0x604, 0x2000);
   // For older versions of QEMU, 
   outw(0xB004, 0x2000);
@@ -16,5 +18,6 @@ halt(void)
 int
 main(void)
 {
+  uartinit();
   halt();
 }

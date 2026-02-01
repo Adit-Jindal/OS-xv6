@@ -1,4 +1,7 @@
-OBJS = main.o
+OBJS = main.o\
+	   console.o\
+	   string.o\
+	   uart.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
