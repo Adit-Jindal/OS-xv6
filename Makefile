@@ -6,6 +6,7 @@ OBJS = \
 	mp.o\
 	picirq.o\
 	uart.o\
+	mouse.o\
 	string.o\
 	proc.o\
 	spinlock.o\
@@ -17,19 +18,7 @@ OBJS = \
 # TOOLPREFIX = i386-jos-elf
 
 # Using native tools (e.g., on X86 Linux)
-#TOOLPREFIX = 
-
-# For ARM based MacOS machines
-# Workaround for newer gcc versions
-UNAME_S := $(shell uname -s)
-UNAME_M := $(shell uname -m)
-
-MAC_CCFLAGS :=
-ifeq ($(UNAME_S),Darwin)
-  ifeq ($(UNAME_M),arm64)
-    MAC_CCFLAGS := -Wno-error=infinite-recursion -Wno-error=array-bounds
-  endif
-endif
+TOOLPREFIX = 
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -37,10 +26,6 @@ TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/d
 	then echo 'i386-jos-elf-'; \
 	elif objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
 	then echo ''; \
-	elif i686-elf-objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
-	then echo 'i686-elf-'; \
-	elif i386-elf-objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
-	then echo 'i386-elf-'; \
 	else echo "***" 1>&2; \
 	echo "*** Error: Couldn't find an i386-*-elf version of GCC/binutils." 1>&2; \
 	echo "*** Is the directory with i386-jos-elf-gcc in your PATH?" 1>&2; \
@@ -78,7 +63,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
-CFLAGS += $(MAC_CCFLAGS)
+CFLAGS += -Wno-array-bounds -Wno-stringop-overread --param=min-pagesize=0
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
@@ -138,12 +123,18 @@ ifndef CPUS
 CPUS := 1
 endif
 
+myprog: myprog.c
+	$(CC) $(CFLAGS) $(NCURSES_CFLAGS) -o $@ myprog.c $(NCURSES_LIBS)
+
 # For debugging
 # QEMUEXTRA = -no-reboot -d int,cpu_reset
 QEMUOPTS = -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
 qemu: xv6.img
-	$(QEMU) -nographic $(QEMUOPTS)
+	$(QEMU) -serial mon:stdio $(QEMUOPTS)
+
+qemu-autograde: xv6.img
+	$(QEMU) -nographic -serial mon:stdio $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@

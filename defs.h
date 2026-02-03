@@ -54,5 +54,9 @@ void            uartinit(void);
 void            uartintr(void);
 void            uartputc(int);
 
+// mouse.c
+void mouseinit(void);
+void mouseintr(void);
+
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

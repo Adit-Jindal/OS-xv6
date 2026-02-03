@@ -8,7 +8,7 @@
 // #include "memlayout.h"
 #include "mp.h"
 #include "x86.h"
-// #include "mmu.h"
+#include "mmu.h"
 #include "proc.h"
 
 struct cpu cpus[NCPU];
@@ -54,7 +54,8 @@ mpsearch(void)
   struct mp *mp;
 
   // bda = (uchar *) P2V(0x400);
-  bda = (uchar *) 0x400;
+  volatile uint addr = 0x400; 
+  bda = (uchar*)(uint)addr;
   if((p = ((bda[0x0F]<<8)| bda[0x0E]) << 4)){
     if((mp = mpsearch1(p, 1024)))
       return mp;
