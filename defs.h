@@ -2,7 +2,9 @@ struct rtcdate;
 
 // console.c
 void            cprintf(char*, ...);
+void            halt(void) __attribute__((noreturn));
 void            panic(char*) __attribute__((noreturn));
+void            consoleintr(int(*)(void));
 
 // ioapic.c
 void            ioapicenable(int irq, int cpu);
@@ -13,8 +15,10 @@ void            ioapicinit(void);
 void            cmostime(struct rtcdate *r);
 int             lapicid(void);
 extern volatile uint*    lapic;
+void            lapiceoi(void);
 void            lapicinit(void);
 void            lapicstartap(uchar, uint);
+void            microdelay(int);
 
 // mp.c
 extern int      ismp;
@@ -40,8 +44,14 @@ int             strlen(const char*);
 int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
 
+// trap.c
+void            idtinit(void);
+extern uint     ticks;
+void            tvinit(void);
+
 // uart.c
 void            uartinit(void);
+void            uartintr(void);
 void            uartputc(int);
 
 // number of elements in fixed-size array

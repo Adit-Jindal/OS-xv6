@@ -1,12 +1,12 @@
 // The local APIC manages internal (non-I/O) interrupts.
 // See Chapter 8 & Appendix C of Intel processor manual volume 3.
 
-#include "param.h"
+// #include "param.h"
 #include "types.h"
 #include "defs.h"
 #include "traps.h"
-#include "mmu.h"
-#include "x86.h"
+// #include "mmu.h"
+// #include "x86.h"
 
 // Local APIC registers, divided by 4 for use as uint[] indices.
 #define ID      (0x0020/4)   // ID
@@ -101,4 +101,19 @@ lapicid(void)
   if (!lapic)
     return 0;
   return lapic[ID] >> 24;
+}
+
+// Acknowledge interrupt.
+void
+lapiceoi(void)
+{
+  if(lapic)
+    lapicw(EOI, 0);
+}
+
+// Spin for a given number of microseconds.
+// On real hardware would want to tune this dynamically.
+void
+microdelay(int us)
+{
 }

@@ -9,6 +9,9 @@ OBJS = \
 	string.o\
 	proc.o\
 	spinlock.o\
+	trapasm.o\
+	trap.o\
+	vectors.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -18,12 +21,15 @@ OBJS = \
 
 # For ARM based MacOS machines
 # Workaround for newer gcc versions
-MAC_CCFLAGS := $(shell if [ "$(shell uname -s)" = "Darwin" ] && [ "$(shell uname -m)" = "arm64" ]; then \
-		echo "-Wno-error=infinite-recursion -Wno-error=array-bounds"; \
-	else \
-		echo ""; \
-	fi)
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
 
+MAC_CCFLAGS :=
+ifeq ($(UNAME_S),Darwin)
+  ifeq ($(UNAME_M),arm64)
+    MAC_CCFLAGS := -Wno-error=infinite-recursion -Wno-error=array-bounds
+  endif
+endif
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -105,6 +111,9 @@ kernel: $(OBJS) entry.o kernel.ld
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
 
+vectors.S: vectors.pl
+	./vectors.pl > vectors.S
+
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
@@ -116,11 +125,11 @@ kernel: $(OBJS) entry.o kernel.ld
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym bootblock \
-	kernel xv6.img \
+	kernel xv6.img vectors.S \
 	.gdbinit
 
 # try to generate a unique GDB port
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)
+GDBPORT = $(shell expr `id -u` % 5000 + 25001)
 # QEMU's gdb stub command line changed in 0.11
 QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
