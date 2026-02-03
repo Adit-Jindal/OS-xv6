@@ -50,7 +50,7 @@ void
 waitdisk(void)
 {
   // Wait for disk ready.
-  while((inb(0x1F7) & 0xC0) != 0x40) // 0x40 means drive ready (bit 6 set, bit 7 clear)
+  while((inb(0x1F7) & 0xC0) != 0x40)
     ;
 }
 
@@ -60,16 +60,16 @@ readsect(void *dst, uint offset)
 {
   // Issue command.
   waitdisk();
-  outb(0x1F2, 1);   // count of sectors = 1
-  outb(0x1F3, offset); // LBA low byte
-  outb(0x1F4, offset >> 8); // LBA mid byte
-  outb(0x1F5, offset >> 16); // LBA high byte
-  outb(0x1F6, (offset >> 24) | 0xE0); // drive/head
+  outb(0x1F2, 1);   // count = 1
+  outb(0x1F3, offset);
+  outb(0x1F4, offset >> 8);
+  outb(0x1F5, offset >> 16);
+  outb(0x1F6, (offset >> 24) | 0xE0);
   outb(0x1F7, 0x20);  // cmd 0x20 - read sectors
 
   // Read data.
   waitdisk();
-  insl(0x1F0, dst, SECTSIZE/4); // 0x1F0 is data port
+  insl(0x1F0, dst, SECTSIZE/4);
 }
 
 // Read 'count' bytes at 'offset' from kernel into physical address 'pa'.

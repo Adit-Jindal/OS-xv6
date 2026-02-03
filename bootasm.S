@@ -43,7 +43,6 @@ seta20.2:
   orl     $CR0_PE, %eax
   movl    %eax, %cr0
 
-//PAGEBREAK!
   # Complete the transition to 32-bit protected mode by using a long jmp
   # to reload %cs and %eip.  The segment descriptors are set up with no
   # translation, so that the mapping is still the identity mapping.
@@ -52,7 +51,7 @@ seta20.2:
 .code32  # Tell assembler to generate 32-bit code now.
 start32:
   # Set up the protected-mode data segment registers
-  movw    $(SEG_KDATA<<3), %ax    # Our data segment selector  -- creates 0x10 since SEG_KDATA is 2. (1)
+  movw    $(SEG_KDATA<<3), %ax    # Our data segment selector
   movw    %ax, %ds                # -> DS: Data Segment
   movw    %ax, %es                # -> ES: Extra Segment
   movw    %ax, %ss                # -> SS: Stack Segment
@@ -85,6 +84,3 @@ gdtdesc:
   .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1
   .long   gdt                             # address gdt
 
-
-# Explanations:
-# (1) 0001 0000 is split as 13 bits (making 2 here) refer to the 2nd index in GDT; the next bit referring to GDT (1 means LDT); the last two bits mean the RPL (Requested Privilege Level)
