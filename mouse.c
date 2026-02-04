@@ -82,6 +82,8 @@ mouseintr(void)
     static int mcycle = 0;
     uchar val;
 
+    int mouse_x = 0, mouse_y = 0; // global reference
+    
     // Drain controller buffer
     while(inb(MSSTATP) & 0x01){
         val = inb(MSDATAP);
@@ -90,11 +92,19 @@ mouseintr(void)
             mcycle = 0;
             // First byte: bits 0,1,2 are left,right,middle
             if(mbuf[0] & 0x01)
-                cprintf("LEFT\n");
+            cprintf("LEFT\n");
             if(mbuf[0] & 0x02)
-                cprintf("RIGHT\n");
+            cprintf("RIGHT\n");
             if(mbuf[0] & 0x04)
-                cprintf("MID\n");
+            cprintf("MID\n");
+
+            int dx = (int)mbuf[1];
+            int dy = -(int)mbuf[2];
+
+            mouse_x += dx;
+            mouse_y += dy;
+
+            cprintf("Position: (%d, %d)\n", mouse_x, mouse_y);
         }
     }
     return;
