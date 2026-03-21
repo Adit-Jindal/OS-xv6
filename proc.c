@@ -14,6 +14,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 extern void trapret(void);
+int sched_count = 0;
 
 int
 cpuid() {
@@ -76,6 +77,7 @@ found:
   sp -= sizeof *p->tf;
   p->tf = (struct trapframe*)sp;
 
+  p->policy = 0;
   sp -= sizeof *p->context;
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
@@ -125,22 +127,61 @@ scheduler(void)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
+
+  // struct proc* chosen = 0;
+  int target_prio = (sched_count==0?1:0);
+  int target_exists = 0; // set to 1 if we find any process of the target priority, else 0
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
+    // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    //   if(p->state != RUNNABLE)
+    //     continue;
+
+    //   // Switch to chosen process. 
+    //   c->proc = p;
+    //   p->state = RUNNING;
+
+    //   switchuvm(p);
+    //   swtch(&(c->scheduler), p->context);
+    // }
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+      if(p->state == RUNNABLE && p->policy==target_prio) {
+        target_exists = 1;
+        break;
+      }
+    }
 
-      // Switch to chosen process. 
-      c->proc = p;
-      p->state = RUNNING;
+    if (target_exists == 0) { // fallback priority
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
 
-      switchuvm(p);
-      swtch(&(c->scheduler), p->context);
+        c->proc = p;
+        p->state = RUNNING;
+
+        switchuvm(p);
+        swtch(&(c->scheduler), p->context);
+        
+        sched_count = (sched_count+1)%10;
+      }
+    }
+
+    else { // target priority exists
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE || p->policy!=target_prio)
+          continue;
+        c->proc = p;
+        p->state = RUNNING;
+
+        switchuvm(p);
+        swtch(&(c->scheduler), p->context);
+        
+        sched_count = (sched_count+1)%10;
+      }
     }
   }
 }
