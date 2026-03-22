@@ -88,12 +88,14 @@ extern int sys_close(void);
 extern int sys_open(void);
 extern int sys_write(void);
 extern int sys_exec(void);
+extern int sys_set_sched_policy(void);
 
 static int (*syscalls[])(void) = {
 [SYS_open]    sys_open,
 [SYS_write]   sys_write,
 [SYS_close]   sys_close,
 [SYS_exec]    sys_exec,
+[SYS_set_sched_policy] sys_set_sched_policy,
 };
 
 void
@@ -110,4 +112,11 @@ syscall(void)
             curproc->pid, curproc->name, num);
     curproc->tf->eax = -1;
   }
+}
+// CHANGES MADE : system call added
+int sys_set_sched_policy(void) {
+  int pid, policy;
+  if(argint(0, &pid) < 0 || argint(1, &policy) < 0)
+    return -1;
+  return set_sched_policy(pid, policy);
 }

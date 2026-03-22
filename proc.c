@@ -225,6 +225,20 @@ yield(void)
   sched();
 }
 
+// CHANGES MADE : Change the scheduling policy of a specific process by PID
+int
+set_sched_policy(int pid, int policy)
+{
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      p->policy = policy;
+      return 0; // Success
+    }
+  }
+  return -1; // Process not found
+}
+
 void
 procdump(void)
 {
