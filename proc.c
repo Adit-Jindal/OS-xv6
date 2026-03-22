@@ -14,7 +14,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 extern void trapret(void);
-int sched_count = 0;
+int sched_count = 0; // CHANGES MADE : added sched_count to ensure time split
 
 int
 cpuid() {
@@ -77,7 +77,6 @@ found:
   sp -= sizeof *p->tf;
   p->tf = (struct trapframe*)sp;
 
-  p->policy = 0;
   sp -= sizeof *p->context;
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
@@ -113,6 +112,12 @@ pinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
+
+  // CHNAGES MADE : set policies (hard coded for now)
+  if (p->pid == 2)
+    p->policy = 1;
+  else
+    p->policy = 0;
 }
 
 // process scheduler.
@@ -128,13 +133,14 @@ scheduler(void)
   struct cpu *c = mycpu();
   c->proc = 0;
 
-  // struct proc* chosen = 0;
-  int target_prio = (sched_count==0?1:0);
+  // CHANGES MADE : new variables added
+  int target_prio;
   int target_exists = 0; // set to 1 if we find any process of the target priority, else 0
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
+    target_prio = (sched_count==0);
 
     // for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     //   if(p->state != RUNNABLE)
@@ -148,6 +154,8 @@ scheduler(void)
     //   swtch(&(c->scheduler), p->context);
     // }
 
+
+    // CHANGES MADE : split the loop based on target priority level
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state == RUNNABLE && p->policy==target_prio) {
         target_exists = 1;
@@ -236,7 +244,7 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    cprintf("%d %s %s", p->pid, state, p->name);
+    cprintf("%d %s %s %d", p->pid, state, p->name, p->policy); // CHANGES MADE : policy printed (debugging)
     cprintf("\n");
   }
 }
