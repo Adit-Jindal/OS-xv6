@@ -4,3 +4,4 @@
 #define SYS_close   3
 #define SYS_exec    4
 #define SYS_set_sched_policy 5
+#define SYS_getpid  6

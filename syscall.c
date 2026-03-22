@@ -89,6 +89,7 @@ extern int sys_open(void);
 extern int sys_write(void);
 extern int sys_exec(void);
 extern int sys_set_sched_policy(void);
+extern int sys_getpid(void);
 
 static int (*syscalls[])(void) = {
 [SYS_open]    sys_open,
@@ -96,6 +97,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_exec]    sys_exec,
 [SYS_set_sched_policy] sys_set_sched_policy,
+[SYS_getpid]  sys_getpid,
 };
 
 void
@@ -115,8 +117,12 @@ syscall(void)
 }
 // CHANGES MADE : system call added
 int sys_set_sched_policy(void) {
-  int pid, policy;
-  if(argint(0, &pid) < 0 || argint(1, &policy) < 0)
+  int policy;
+  if(argint(0, &policy) < 0)
     return -1;
-  return set_sched_policy(pid, policy);
+  return set_sched_policy(policy);
+}
+
+int sys_getpid(void) {
+  return myproc()->pid;
 }

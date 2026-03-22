@@ -114,10 +114,11 @@ pinit(void)
   p->state = RUNNABLE;
 
   // CHNAGES MADE : set policies (hard coded for now)
-  if (p->pid == 2)
-    p->policy = 1;
-  else
-    p->policy = 0;
+  // if (p->pid == 2)
+  //   p->policy = 1;
+  // else
+  //   p->policy = 0;
+  p->policy = 0;
 }
 
 // process scheduler.
@@ -225,18 +226,15 @@ yield(void)
   sched();
 }
 
-// CHANGES MADE : Change the scheduling policy of a specific process by PID
+// CHANGES MADE : Change the scheduling policy of the calling process
 int
-set_sched_policy(int pid, int policy)
+set_sched_policy(int policy)
 {
-  struct proc *p;
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid){
-      p->policy = policy;
-      return 0; // Success
-    }
-  }
-  return -1; // Process not found
+  struct proc *p = myproc();
+  if(p == 0)
+    return -1;
+  p->policy = policy;
+  return 0;
 }
 
 void

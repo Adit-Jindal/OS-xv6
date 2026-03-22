@@ -97,7 +97,7 @@ void            pinit(void);
 struct cpu*     mycpu(void);
 struct proc*    myproc();
 void            scheduler(void) __attribute__((noreturn));
-int             set_sched_policy(int, int);
+int             set_sched_policy(int);
 void            procdump(void);
 void            yield(void);
 
@@ -126,6 +126,7 @@ int             fetchint(uint, int*);
 int             fetchstr(uint, char**);
 void            syscall(void);
 int             sys_set_sched_policy(void);
+int             sys_getpid(void);
 
 // trap.c
 void            idtinit(void);
